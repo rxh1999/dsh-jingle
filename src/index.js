@@ -46,6 +46,22 @@ export const Config = z.object({
 })
 
 /**
+ * Settings-section schema. The `sounds:` section of the user settings
+ * document accepts both the full config shape (`{ enabled, sounds }`) and
+ * the flat README form — the section itself is the event → sound map:
+ *
+ * ```yaml
+ * sounds:
+ *   agent/status/idle: ./sounds/done.wav
+ * ```
+ *
+ * The dict branch is tried first so the flat form wins; `{ enabled: true }`
+ * alone (or the composition entry's config-shaped base) falls through to
+ * `Config`.
+ */
+const SectionSchema = z.union([z.dict(SoundEntry), Config])
+
+/**
  * Host lifecycle events (emitted on the root context), configured by their
  * exact dsh event name. `agent/status` is split into its two observable
  * states because a sound for a state flip needs to know which way it went.
@@ -114,7 +130,7 @@ export function apply(ctx, config = {}) {
   // User settings override the composition entry; live edits to
   // settings.yaml hot-reload without a restart. Without a settings
   // service, the entry config stays authoritative.
-  installSettingsSection(ctx, NS, Config, config, {
+  installSettingsSection(ctx, NS, SectionSchema, config, {
     setSource: (source) => {
       readConfig = source
     },
@@ -124,12 +140,32 @@ export function apply(ctx, config = {}) {
   ctx.on('dispose', () => loop.stop())
 
   /**
-   * Resolve the effective config. Nothing plays unless the user configures
-   * at least one event sound — the plugin is silent by default.
+   * Resolve the effective config. The settings section may hold the full
+   * config shape (`{ enabled, sounds }`) or the flat README form — the
+   * section itself is the event → sound map. Both are normalized here;
+   * a section merged from a config-shaped base plus flat entries (a flat
+   * map with `sounds` defaulted to `{}` by the full-shape schema) is
+   * tolerated by collecting the top-level entries.
+   *
+   * Nothing plays unless the user configures at least one event sound —
+   * the plugin is silent by default.
    */
   function resolveConfig() {
     const cfg = readConfig()
-    return { enabled: cfg?.enabled ?? true, sounds: cfg?.sounds ?? {} }
+    if (cfg === null || typeof cfg !== 'object') return { enabled: true, sounds: {} }
+    const isFlat = !('enabled' in cfg) && !('sounds' in cfg)
+    if (isFlat) return { enabled: true, sounds: cfg }
+    const sounds = cfg.sounds ?? {}
+    const hasTopLevelEntries = Object.keys(sounds).length === 0 &&
+      Object.keys(cfg).some((key) => key !== 'enabled' && key !== 'sounds')
+    if (hasTopLevelEntries) {
+      const flat = {}
+      for (const [key, value] of Object.entries(cfg)) {
+        if (key !== 'enabled' && key !== 'sounds') flat[key] = value
+      }
+      return { enabled: cfg.enabled ?? true, sounds: flat }
+    }
+    return { enabled: cfg.enabled ?? true, sounds }
   }
 
   /**
