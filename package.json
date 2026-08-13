@@ -1,0 +1,40 @@
+{
+  "name": "dsh-jingle",
+  "version": "1.0.0",
+  "description": "Play sounds on dsh events — a sound-effects plugin for the DeepSeek Harness",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rxh1999/dsh-jingle.git"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "files": [
+    "src",
+    "sounds",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "gen:sound": "node scripts/gen-done-wav.mjs",
+    "smoke": "node test/smoke.mjs"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "cordis",
+    "plugin",
+    "sound",
+    "jingle"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  }
+}
