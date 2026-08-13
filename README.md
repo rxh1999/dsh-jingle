@@ -25,9 +25,13 @@ pnpm add -w git+https://github.com/rxh1999/dsh-jingle.git
 
 Install the plugin into your profile, add the patch row, restart `dsh web`. The plugin is silent until you configure sounds.
 
-也可以跳过手动配置：直接在对话里告诉 LLM 要什么提示音，agent 会帮你配置好。
+也可以跳过手动配置：直接在对话里告诉 LLM 要什么提示音，agent 会帮你配置好，例如：
 
-Or skip manual configuration: just tell the LLM in the conversation what sounds you want — the agent configures it for you.
+> 帮我配置 dsh-jingle：任务完成时播放提示音
+
+Or skip manual configuration: just tell the LLM in the conversation what sounds you want — the agent configures it for you, for example:
+
+> Configure dsh-jingle to play a chime when a task finishes.
 
 ## 配置 / Configuration
 
