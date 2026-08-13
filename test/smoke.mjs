@@ -111,6 +111,7 @@ async function bootPlugin({ section, config = { enabled: true, sounds: {} } } = 
   ctx.emit('session/event', session, { type: 'tool/call', seq: 8, time: Date.now(), data: { turn: 1, step: 0, callId: 'c1', name: 'x', arguments: '{}' } })
   ctx.emit('session/event', session, { type: 'tool/result', seq: 9, time: Date.now(), data: { turn: 1, step: 0, message: {} } })
   ctx.emit('session/event', session, { type: 'user/message', seq: 10, time: Date.now(), data: {} })
+  ctx.emit('session/event', session, { type: 'approval/asked', seq: 11, time: Date.now(), data: { id: 'a1', toolName: 'bash' } })
 
   const empty = await run('')
   assert.equal(empty.kind, 'success')
@@ -136,12 +137,14 @@ async function bootPlugin({ section, config = { enabled: true, sounds: {} } } = 
     section: {
       'agent/status/idle': './sounds/done.wav',
       'turn/end': { path: './sounds/chime.wav', volume: 0.4 },
+      'approval/asked': './sounds/ding.wav',
     },
   })
   const listed = await run('list')
   assert.equal(listed.kind, 'success')
   assert.match(listed.text, /agent\/status\/idle: \.\/sounds\/done\.wav/)
   assert.match(listed.text, /turn\/end: \.\/sounds\/chime\.wav at volume 0\.4/)
+  assert.match(listed.text, /approval\/asked: \.\/sounds\/ding\.wav/)
 }
 
 // 5b. Full config shape in the section.

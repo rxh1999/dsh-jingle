@@ -65,6 +65,7 @@ sounds:
 | `turn/start` / `turn/end` | 回合开始 / 结束 |
 | `step/start` / `step/end` | 步骤开始 / 结束 |
 | `tool/call` / `tool/result` | 工具调用 / 结果 |
+| `approval/asked` | 等待审批（请求发出，等待用户决定） |
 
 `agent/status/running ⇄ idle` 对应一次任务的完整生命周期（Web 客户端里即一次回合）。会话恢复（resume/replay）重放的历史事件会被跳过，不会在启动时提示音轰炸。
 

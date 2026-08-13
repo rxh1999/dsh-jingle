@@ -88,6 +88,7 @@ const SESSION_EVENTS = [
   'step/end',
   'tool/call',
   'tool/result',
+  'approval/asked',
 ] /* @type {string[]} */
 
 /** @returns {string} the dsh home directory ($DSH_HOME or ~/.dsh). */
@@ -228,7 +229,7 @@ export function apply(ctx, config = {}) {
         'session/created, session/disposed, agent/created, agent/disposed, ' +
         'agent/session-start, agent/error, agent/status/running, ' +
         'agent/status/idle, user/message, turn/start, turn/end, step/start, ' +
-        'step/end, tool/call, tool/result'
+        'step/end, tool/call, tool/result, approval/asked'
 
       if (cmd === undefined || cmd === 'list') {
         const { enabled, sounds } = resolveConfig()

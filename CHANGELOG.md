@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] - 2026-08-14
+
+- New event: `approval/asked` (waiting for user approval) joins the
+  session-log events; configure a sound for it like any other event.
+- The `sounds:` settings section now accepts the flat README form (the
+  section itself is the event → sound map) in addition to the full config
+  shape (`{ enabled, sounds }`); both are normalized internally.
+
 ## [1.0.0] - 2026-08-14
 
 First stable release.
