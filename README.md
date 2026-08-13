@@ -10,7 +10,9 @@ Play sounds on dsh events — inspired by [pi-jingle](https://github.com/Git-Mon
 
    ```bash
    cd ~/.dsh/profiles/web
-   pnpm add -w file:/path/to/dsh-jingle        # 或 dsh plugin --profile web add <pkg>
+   pnpm add -w git+https://github.com/rxh1999/dsh-jingle.git   # 从 GitHub 安装
+   # 或本地开发：pnpm add -w file:/path/to/dsh-jingle
+   # 或 dsh plugin --profile web add <pkg>
    ```
 
 2. 在 `~/.dsh/profiles/web/cordis.patch.yml` 中加入一行：
