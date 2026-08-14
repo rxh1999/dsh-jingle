@@ -4,13 +4,15 @@
  * Boots a minimal cordis context with a mock `commands` service and the
  * plugin applied, then verifies:
  *   1. apply() does not throw,
- *   2. the `/sounds` command is registered,
+ *   2. the /sounds command is registered,
  *   3. event handlers tolerate empty/mocked payloads without throwing,
  *   4. the command handler returns the expected shapes,
  *   5. the `sounds:` settings section resolves in BOTH the full config
- *      shape (`{ enabled, sounds }`) and the flat README form (the section
+ *      shape ({ enabled, sounds }) and the flat README form (the section
  *      itself is the event → sound map), including the merged-tolerant
- *      case where a config-shaped base meets flat entries.
+ *      case where a config-shaped base meets flat entries,
+ *   6. agent/status sounds follow the top-level agent only: subagent
+ *      status flips never reach the player.
  *
  * Run from the installed profile (so `@deepseek-ai/cordis` and the
  * plugin's own dependencies resolve):
@@ -178,6 +180,65 @@ async function bootPlugin({ section, config = { enabled: true, sounds: {} } } = 
   assert.equal(listed.kind, 'success')
   assert.match(listed.text, /\(disabled\)/)
   assert.match(listed.text, /agent\/status\/idle: \.\/sounds\/done\.wav/)
+}
+
+// 6. agent/status scoping: only the top-level agent's status flips ring.
+// Subagents drive child sessions (`header.parentSession` set) — their flips
+// must never reach the player; the main conversation's agent (no parent)
+// rings as before.
+{
+  // Shadow the native one-shot player with a shim in PATH: every spawn
+  // attempt appends a line to a log and exits non-zero, so "did the plugin
+  // try to play?" is observable without playing audio and without touching
+  // module bindings.
+  const { mkdtempSync, writeFileSync, readFileSync, existsSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const shimDir = mkdtempSync(join(tmpdir(), 'jingle-shim-'))
+  const logPath = join(shimDir, 'calls.log')
+  writeFileSync(
+    join(shimDir, 'afplay'),
+    '#!/bin/sh\n' + 'echo "$@" >> ' + JSON.stringify(logPath) + '\nexit 1\n',
+    { mode: 0o755 },
+  )
+  const previousPath = process.env.PATH
+  process.env.PATH = shimDir + ':' + previousPath
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 150))
+  try {
+    // A nonexistent sound file: the shim still runs (and fails silently),
+    // so the log counts trigger attempts without playing audio.
+    const { ctx } = await bootPlugin({
+      section: { 'agent/status/idle': './sounds/nope.wav' },
+    })
+    const attempts = () =>
+      existsSync(logPath) ? readFileSync(logPath, 'utf8').trim().split(/\n+/).filter(Boolean).length : 0
+
+    ctx.emit('agent/status', {
+      agent: { session: { header: { parentSession: 'root' } } },
+      status: 'idle',
+    })
+    await settle()
+    assert.equal(attempts(), 0, 'subagent idle must not play anything')
+
+    ctx.emit('agent/status', {
+      agent: { session: { header: { parentSession: 'root' } } },
+      status: 'running',
+    })
+    await settle()
+    assert.equal(attempts(), 0, 'subagent running must not play anything')
+
+    ctx.emit('agent/status', { agent: { session: { header: {} } }, status: 'idle' })
+    await settle()
+    assert.equal(attempts(), 1, 'top-level idle must trigger playback')
+
+    // Defensive fallback: a payload without the injected agent keeps the
+    // historical behavior (treated as top-level).
+    ctx.emit('agent/status', { status: 'idle' })
+    await settle()
+    assert.equal(attempts(), 2, 'missing agent falls back to playing')
+  } finally {
+    process.env.PATH = previousPath
+  }
 }
 
 console.log('dsh-jingle smoke test: ok')
