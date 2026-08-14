@@ -55,8 +55,8 @@ sounds:
 
 | 配置键 | 触发时机 |
 |---|---|
-| `agent/status/running` | 任务开始（建议配 `loop: true`） |
-| `agent/status/idle` | 任务完成（同时停止所有循环播放） |
+| `agent/status/running` | 主 agent 回合开始（建议配 `loop: true`） |
+| `agent/status/idle` | 主 agent 回合结束、等待你输入（同时停止所有循环播放） |
 | `session/created` / `session/disposed` | 会话创建 / 销毁 |
 | `agent/created` / `agent/disposed` | agent 注册 / 注销 |
 | `agent/session-start` | agent 会话生命周期开始（startup/resume/clear/compact） |
@@ -67,7 +67,9 @@ sounds:
 | `tool/call` / `tool/result` | 工具调用 / 结果 |
 | `approval/asked` | 等待审批（请求发出，等待用户决定） |
 
-`agent/status/running ⇄ idle` 对应一次任务的完整生命周期（Web 客户端里即一次回合）。会话恢复（resume/replay）重放的历史事件会被跳过，不会在启动时提示音轰炸。
+`agent/status/running ⇄ idle` 对应一次任务的完整生命周期（Web 客户端里即一次回合）。`agent/status` 的声音**只跟随顶层（主）agent**：subagent 在子会话中运行，其状态翻转不会触发任何声音——后台 subagent 完成时不会响铃，只有主 agent 回合结束、等你下一条消息时才响。
+
+Agent-status sounds follow the **top-level agent only**: subagents run in child sessions and their status flips are inaudible, so a background subagent finishing never chimes — only the main agent's turn end (waiting for your next message) rings. 会话恢复（resume/replay）重放的历史事件会被跳过，不会在启动时提示音轰炸。
 
 ## 命令 / Commands
 

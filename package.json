@@ -1,6 +1,6 @@
 {
   "name": "dsh-jingle",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Play sounds on dsh events — a sound-effects plugin for the DeepSeek Harness",
   "repository": {
     "type": "git",

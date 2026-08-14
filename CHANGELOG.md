@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0] - 2026-08-14
+
+- `agent/status/running` / `agent/status/idle` now follow the **top-level
+  (main) agent only**. Subagents drive child sessions (their header records
+  a parent session), and their status flips are silent — a background
+  subagent finishing no longer rings. `agent/status/idle` therefore means
+  "the main agent's turn ended and it is waiting for your next message".
+
 ## [1.1.0] - 2026-08-14
 
 - New event: `approval/asked` (waiting for user approval) joins the

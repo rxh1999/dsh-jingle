@@ -187,8 +187,16 @@ export function apply(ctx, config = {}) {
   }
 
   // agent/status: 'running' = a task begins (loop-friendly), 'idle' = the
-  // task completes and any looping sound stops.
-  ctx.on('agent/status', ({ status }) => {
+  // task completes and any looping sound stops. The payload carries the
+  // emitting `agent` (injected by dsh-scope's agentEvents dispatcher);
+  // subagents drive child sessions whose header records a parent, and their
+  // status flips are inaudible — only the top-level agent's turn lifecycle
+  // rings, so a background subagent finishing never chimes while the main
+  // conversation waits.
+  const isTopLevelAgent = (agent) => agent?.session?.header?.parentSession == null
+
+  ctx.on('agent/status', ({ agent, status }) => {
+    if (!isTopLevelAgent(agent)) return
     if (status === 'running') {
       trigger(AGENT_RUNNING)
     } else if (status === 'idle') {
